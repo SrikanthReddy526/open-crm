@@ -1,0 +1,24 @@
+{
+  "name": "open-crm-mobile",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Capacitor shell for Open CRM (Android/iOS). Contains no UI code: it wraps ../web/dist.",
+  "scripts": {
+    "sync:lan": "node scripts/sync.mjs lan",
+    "sync:prod": "node scripts/sync.mjs prod",
+    "open:android": "cap open android",
+    "android:lan": "node scripts/sync.mjs lan && cap open android",
+    "dev:android": "cap run android --live-reload --port 5173"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/ios": "8.6.0",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0",
+    "typescript": "7.0.2"
+  }
+}

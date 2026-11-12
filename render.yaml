@@ -1,0 +1,36 @@
+# Render blueprint — permanent public link for Open CRM (free plan).
+# Database: Neon (free PostgreSQL with PostGIS). See docs/DEPLOY.md → "Option C: Render + Neon".
+services:
+  - type: web
+    name: open-crm
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # jdbc:postgresql://<neon-host>/<db>?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_POOL_SIZE
+        value: "5"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://*.onrender.com,https://localhost,capacitor://localhost,app://open-crm
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+      - key: AI_PROVIDER
+        value: none

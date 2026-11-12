@@ -1,0 +1,60 @@
+{
+  "name": "open-crm-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Open CRM desktop app (Electron). Contains no UI code: it packages ../web/dist.",
+  "author": "Open CRM",
+  "license": "Apache-2.0",
+  "main": "main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "node scripts/build.mjs --no-package && node scripts/dev.mjs --local",
+    "build": "node scripts/build.mjs",
+    "build:dir": "node scripts/build.mjs --dir"
+  },
+  "build": {
+    "appId": "org.opencrm.desktop",
+    "productName": "Open CRM",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "web",
+        "to": "web"
+      }
+    ],
+    "icon": "build/icon.png",
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.business"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0"
+  }
+}

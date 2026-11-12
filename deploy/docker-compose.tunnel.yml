@@ -1,0 +1,27 @@
+# Public hosting from this PC through a free Cloudflare Tunnel (cloudflared is open source, Apache-2.0).
+# No server, domain, router port-forwarding or public IP needed. Cloudflare provides the HTTPS.
+#
+#   docker compose -f deploy/docker-compose.prod.yml -f deploy/docker-compose.tunnel.yml --env-file .env up -d --build
+#   docker compose -f deploy/docker-compose.prod.yml -f deploy/docker-compose.tunnel.yml logs tunnel   # shows the public https://….trycloudflare.com link
+#
+# By default this is a "quick tunnel": a random link that changes every time the tunnel restarts.
+# For a fixed link on your own domain, create a tunnel in the Cloudflare dashboard (Zero Trust → Networks → Tunnels),
+# point its public hostname at http://web:80, and add to .env:
+#   TUNNEL_TOKEN=<token from the dashboard>
+#   TUNNEL_COMMAND=tunnel --no-autoupdate run
+# See docs/DEPLOY.md → "Option B".
+services:
+  web:
+    environment:
+      # Caddy serves plain HTTP inside Docker; Cloudflare terminates HTTPS in front of it.
+      DOMAIN: ":80"
+    ports: !reset []
+
+  tunnel:
+    image: cloudflare/cloudflared:${CLOUDFLARED_VERSION:-2025.11.1}
+    restart: unless-stopped
+    depends_on:
+      - web
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    command: ${TUNNEL_COMMAND:-tunnel --no-autoupdate --url http://web:80}

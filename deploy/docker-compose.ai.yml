@@ -1,0 +1,25 @@
+# Add-on: AI agent assistant with a local, open-source model (Ollama, MIT licence). No API key, data stays on your server.
+#
+#   docker compose -f deploy/docker-compose.prod.yml [-f deploy/docker-compose.tunnel.yml] -f deploy/docker-compose.ai.yml --env-file .env up -d --build
+#   docker compose -f deploy/docker-compose.prod.yml -f deploy/docker-compose.ai.yml exec ollama ollama pull qwen2.5:3b   # once, ~2 GB
+#
+# qwen2.5:3b needs about 3 GB of free RAM and answers in roughly 10-60 s on a laptop CPU. With more RAM or a GPU,
+# set OLLAMA_MODEL in .env to a bigger model (e.g. qwen2.5:7b) for better replies, and pull that one instead.
+services:
+  ollama:
+    image: ollama/ollama:${OLLAMA_VERSION:-0.12.6}
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m # keep the model in memory between requests
+    volumes:
+      - ollama_models:/root/.ollama
+    # No ports: only the API container talks to it.
+
+  api:
+    depends_on:
+      - ollama
+    environment:
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+
+volumes:
+  ollama_models:

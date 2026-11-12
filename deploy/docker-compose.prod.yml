@@ -1,0 +1,72 @@
+# Production stack: PostgreSQL + PostGIS, Spring Boot API, Caddy (website + automatic HTTPS).
+#   cp .env.example .env    (in the project root; fill in the values)
+#   docker compose -f deploy/docker-compose.prod.yml --env-file .env up -d --build
+# See docs/DEPLOY.md.
+name: opencrm
+
+services:
+  db:
+    # postgis/postgis has no ARM image. On ARM servers (e.g. Oracle Cloud free tier) set
+    # POSTGIS_IMAGE=imresamu/postgis:16-3.5 in .env (same image, built for ARM too).
+    image: ${POSTGIS_IMAGE:-postgis/postgis:16-3.5}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: opencrm
+      POSTGRES_USER: opencrm
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opencrm -d opencrm"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # No ports: the database is only reachable from the API container.
+
+  api:
+    build: ../backend
+    image: opencrm-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/opencrm
+      DB_USER: opencrm
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET (32+ random characters) in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS in .env}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
+      # AI agent assistant: off unless you add deploy/docker-compose.ai.yml (local Ollama) or set
+      # AI_PROVIDER=anthropic + ANTHROPIC_API_KEY (Claude API, paid). See docs/DEPLOY.md → "AI assistant".
+      AI_PROVIDER: ${AI_PROVIDER:-none}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
+    # No ports: Caddy forwards /api to it.
+
+  web:
+    build: ../web
+    image: opencrm-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env (e.g. crm.example.com)}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data # HTTPS certificates — keep this volume
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
