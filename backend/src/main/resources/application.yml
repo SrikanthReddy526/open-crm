@@ -31,6 +31,8 @@ spring:
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework   # correct https URLs behind a reverse proxy
+  mime-mappings:
+    webmanifest: application/manifest+json   # PWA manifest when Spring serves the website
 
 app:
   # Used for "due today", "this month" etc.
