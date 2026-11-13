@@ -29,7 +29,7 @@ services:
       - key: ADMIN_PASSWORD
         sync: false
       - key: CORS_ORIGINS
-        value: https://*.onrender.com,https://localhost,capacitor://localhost,app://open-crm
+        value: https://*.onrender.com,https://*.vercel.app,https://localhost,capacitor://localhost,app://open-crm
       - key: SERVER_TOMCAT_THREADS_MAX
         value: "40"
       - key: APP_TIMEZONE
