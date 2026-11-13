@@ -30,6 +30,8 @@ services:
         sync: false
       - key: CORS_ORIGINS
         value: https://*.onrender.com,https://localhost,capacitor://localhost,app://open-crm
+      - key: SERVER_TOMCAT_THREADS_MAX
+        value: "40"
       - key: APP_TIMEZONE
         value: Asia/Kolkata
       - key: AI_PROVIDER
